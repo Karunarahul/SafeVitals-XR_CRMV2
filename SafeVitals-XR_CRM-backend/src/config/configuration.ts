@@ -4,6 +4,7 @@ export default () => ({
   host: process.env.HOST || '0.0.0.0',
   database: {
     uri: process.env.MONGODB_URI || 'mongodb://localhost:27017/safevitals_crm',
+    name: process.env.MONGODB_DB_NAME || 'safevitals',
   },
   jwt: {
     secret:

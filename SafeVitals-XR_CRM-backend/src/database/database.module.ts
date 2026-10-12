@@ -24,23 +24,27 @@ import { OrgSettings, OrgSettingsSchema } from '../org-settings/schemas/org-sett
       useFactory: async (configService: ConfigService) => {
         const logger = new Logger('MongoDB');
         const uri = configService.get<string>('database.uri') || '';
+        const dbName = configService.get<string>('database.name') || 'safevitals';
         const sanitizedUri = uri.replace(/:\/\/([^:]+):([^@]+)@/, '://$1:***@');
-        logger.log(`Connecting to MongoDB cluster: ${sanitizedUri}`);
+        logger.log(`Connecting to MongoDB cluster: ${sanitizedUri} [Database: ${dbName}]`);
 
         return {
           uri,
+          dbName,
           serverSelectionTimeoutMS: 5000,
           connectTimeoutMS: 10000,
           connectionErrorFactory: (error) => {
-            logger.error(`[DATABASE_FATAL] MongoDB connection failed: ${error.message}`);
+            const sanitizedMsg = error.message.replace(/:\/\/([^:]+):([^@]+)@/, '://$1:***@');
+            logger.error(`[DATABASE_FATAL] MongoDB connection failed: ${sanitizedMsg}`);
             return error;
           },
           connectionFactory: (connection) => {
             connection.on('connected', () => {
-              logger.log('Successfully established connection to MongoDB.');
+              logger.log(`Successfully connected to MongoDB Atlas database '${dbName}'.`);
             });
             connection.on('error', (err: any) => {
-              logger.error(`[DATABASE_ERROR] MongoDB error encountered: ${err.message}`);
+              const sanitizedMsg = (err.message || '').replace(/:\/\/([^:]+):([^@]+)@/, '://$1:***@');
+              logger.error(`[DATABASE_ERROR] MongoDB error encountered: ${sanitizedMsg}`);
             });
             connection.on('disconnected', () => {
               logger.warn('MongoDB connection lost. Awaiting automatic reconnection...');
