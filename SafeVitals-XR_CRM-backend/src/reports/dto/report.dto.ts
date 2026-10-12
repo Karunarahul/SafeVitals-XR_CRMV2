@@ -2,10 +2,20 @@ import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateReportDto {
-  @ApiProperty({ example: '2025-02-07' })
+  @ApiPropertyOptional({ example: '2025-02-07' })
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  weekEnding: string;
+  weekEnding?: string;
+
+  @ApiPropertyOptional({ example: '2025-02-01' })
+  @IsOptional()
+  @IsString()
+  weekStartDate?: string;
+
+  @ApiPropertyOptional({ example: '2025-02-07' })
+  @IsOptional()
+  @IsString()
+  weekEndDate?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
@@ -15,7 +25,17 @@ export class CreateReportDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
+  workedOn?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
   achievements?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  completed?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
@@ -25,7 +45,17 @@ export class CreateReportDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
+  blockers?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
   plans?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  nextWeekPlan?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
@@ -38,4 +68,21 @@ export class AddReportCommentDto {
   @IsString()
   @IsNotEmpty()
   text: string;
+}
+
+export class ReviewReportDto {
+  @ApiPropertyOptional({ example: 'Approved' })
+  @IsOptional()
+  @IsString()
+  status?: string;
+
+  @ApiPropertyOptional({ example: 'Approved without changes' })
+  @IsOptional()
+  @IsString()
+  reviewMessage?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  reviewComments?: string;
 }

@@ -17,6 +17,26 @@ export class UpdateOrgSettingsDto {
   @IsString()
   dateFormat?: string;
 
+  @ApiPropertyOptional({ example: 'admin@safevitals.com' })
+  @IsOptional()
+  @IsString()
+  contactEmail?: string;
+
+  @ApiPropertyOptional({ example: 'INR' })
+  @IsOptional()
+  @IsString()
+  currency?: string;
+
+  @ApiPropertyOptional({ example: 'SafeVitals HR' })
+  @IsOptional()
+  @IsString()
+  senderName?: string;
+
+  @ApiPropertyOptional({ example: 'hr@safevitals.com' })
+  @IsOptional()
+  @IsString()
+  replyToEmail?: string;
+
   @ApiPropertyOptional({ example: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'] })
   @IsOptional()
   @IsArray()

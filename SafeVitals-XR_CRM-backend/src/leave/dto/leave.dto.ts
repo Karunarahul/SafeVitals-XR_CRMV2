@@ -9,10 +9,15 @@ import {
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateLeaveDto {
-  @ApiProperty({ enum: ['annual', 'sick', 'casual', 'maternity', 'paternity', 'unpaid'] })
-  @IsEnum(['annual', 'sick', 'casual', 'maternity', 'paternity', 'unpaid'])
-  @IsNotEmpty()
-  type: string;
+  @ApiPropertyOptional({ enum: ['annual', 'sick', 'casual', 'maternity', 'paternity', 'unpaid', 'Annual', 'Sick', 'Casual', 'Earned', 'Unpaid'] })
+  @IsOptional()
+  @IsString()
+  type?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  leaveType?: string;
 
   @ApiProperty({ example: '2025-02-01' })
   @IsString()
@@ -24,10 +29,11 @@ export class CreateLeaveDto {
   @IsNotEmpty()
   endDate: string;
 
-  @ApiProperty({ example: 4 })
+  @ApiPropertyOptional({ example: 4 })
+  @IsOptional()
   @IsNumber()
   @Min(0.5)
-  days: number;
+  days?: number;
 
   @ApiPropertyOptional()
   @IsOptional()
@@ -45,4 +51,21 @@ export class RejectLeaveDto {
   @IsString()
   @IsNotEmpty()
   reason: string;
+}
+
+export class ReviewLeaveDto {
+  @ApiProperty({ example: 'Approved' })
+  @IsString()
+  @IsNotEmpty()
+  status: string;
+
+  @ApiPropertyOptional({ example: 'Approved by manager' })
+  @IsOptional()
+  @IsString()
+  note?: string;
+
+  @ApiPropertyOptional({ example: 'Approved by manager' })
+  @IsOptional()
+  @IsString()
+  reviewNotes?: string;
 }

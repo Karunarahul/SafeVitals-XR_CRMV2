@@ -2,25 +2,45 @@ import { IsArray, IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validat
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateScheduleDto {
-  @ApiProperty()
+  @ApiPropertyOptional({ example: 'Standard Day Shift' })
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  employeeId: string;
+  name?: string;
 
-  @ApiProperty({ example: '2025-02-01' })
+  @ApiPropertyOptional()
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  date: string;
+  employeeId?: string;
+
+  @ApiPropertyOptional({ example: '2025-02-01' })
+  @IsOptional()
+  @IsString()
+  date?: string;
 
   @ApiPropertyOptional({ example: '09:00' })
   @IsOptional()
   @IsString()
   shiftStart?: string;
 
+  @ApiPropertyOptional({ example: '09:00' })
+  @IsOptional()
+  @IsString()
+  startTime?: string;
+
   @ApiPropertyOptional({ example: '17:00' })
   @IsOptional()
   @IsString()
   shiftEnd?: string;
+
+  @ApiPropertyOptional({ example: '17:00' })
+  @IsOptional()
+  @IsString()
+  endTime?: string;
+
+  @ApiPropertyOptional({ example: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'] })
+  @IsOptional()
+  @IsArray()
+  workDays?: string[];
 
   @ApiPropertyOptional({ enum: ['work', 'off', 'holiday', 'on_call'], default: 'work' })
   @IsOptional()

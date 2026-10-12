@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Put,
+  Patch,
   Delete,
   Param,
   Body,
@@ -56,6 +57,14 @@ export class TeamsController {
   @ApiOperation({ summary: 'Delete team' })
   delete(@Param('id') id: string) {
     return this.teamsService.delete(id);
+  }
+
+  @Patch(':id/archive')
+  @Roles('Super Admin', 'Manager')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Toggle team archive status (PATCH)' })
+  archivePatch(@Param('id') id: string) {
+    return this.teamsService.archive(id);
   }
 
   @Post(':id/archive')

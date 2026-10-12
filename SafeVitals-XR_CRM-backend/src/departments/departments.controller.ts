@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Put,
+  Patch,
   Delete,
   Param,
   Body,
@@ -55,6 +56,14 @@ export class DepartmentsController {
   @ApiOperation({ summary: 'Delete department' })
   delete(@Param('id') id: string) {
     return this.departmentsService.delete(id);
+  }
+
+  @Patch(':id/archive')
+  @Roles('Super Admin', 'Manager')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Toggle department archive status (PATCH)' })
+  archivePatch(@Param('id') id: string) {
+    return this.departmentsService.archive(id);
   }
 
   @Post(':id/archive')

@@ -45,4 +45,3 @@ export class Position {
 
 export const PositionSchema = SchemaFactory.createForClass(Position);
 PositionSchema.index({ departmentId: 1, title: 1 }, { unique: true });
-PositionSchema.index({ isArchived: 1 });

@@ -23,14 +23,19 @@ export class CreateTaskDto {
   @IsString()
   assigneeId?: string;
 
-  @ApiPropertyOptional({ enum: ['todo', 'in_progress', 'review', 'done'], default: 'todo' })
+  @ApiPropertyOptional()
   @IsOptional()
-  @IsEnum(['todo', 'in_progress', 'review', 'done'])
+  @IsString()
+  assignedTo?: string;
+
+  @ApiPropertyOptional({ enum: ['todo', 'in_progress', 'review', 'done', 'To Do', 'In Progress', 'Blocked', 'Done', 'Cancelled'], default: 'todo' })
+  @IsOptional()
+  @IsEnum(['todo', 'in_progress', 'review', 'done', 'To Do', 'In Progress', 'Blocked', 'Done', 'Cancelled'])
   status?: string;
 
-  @ApiPropertyOptional({ enum: ['low', 'medium', 'high', 'urgent'], default: 'medium' })
+  @ApiPropertyOptional({ enum: ['low', 'medium', 'high', 'urgent', 'Low', 'Medium', 'High', 'Urgent'], default: 'medium' })
   @IsOptional()
-  @IsEnum(['low', 'medium', 'high', 'urgent'])
+  @IsEnum(['low', 'medium', 'high', 'urgent', 'Low', 'Medium', 'High', 'Urgent'])
   priority?: string;
 
   @ApiPropertyOptional({ example: '2025-02-15' })
@@ -60,14 +65,19 @@ export class UpdateTaskDto {
   @IsString()
   assigneeId?: string;
 
-  @ApiPropertyOptional({ enum: ['todo', 'in_progress', 'review', 'done'] })
+  @ApiPropertyOptional()
   @IsOptional()
-  @IsEnum(['todo', 'in_progress', 'review', 'done'])
+  @IsString()
+  assignedTo?: string;
+
+  @ApiPropertyOptional({ enum: ['todo', 'in_progress', 'review', 'done', 'To Do', 'In Progress', 'Blocked', 'Done', 'Cancelled'] })
+  @IsOptional()
+  @IsEnum(['todo', 'in_progress', 'review', 'done', 'To Do', 'In Progress', 'Blocked', 'Done', 'Cancelled'])
   status?: string;
 
-  @ApiPropertyOptional({ enum: ['low', 'medium', 'high', 'urgent'] })
+  @ApiPropertyOptional({ enum: ['low', 'medium', 'high', 'urgent', 'Low', 'Medium', 'High', 'Urgent'] })
   @IsOptional()
-  @IsEnum(['low', 'medium', 'high', 'urgent'])
+  @IsEnum(['low', 'medium', 'high', 'urgent', 'Low', 'Medium', 'High', 'Urgent'])
   priority?: string;
 
   @ApiPropertyOptional()
@@ -82,8 +92,8 @@ export class UpdateTaskDto {
 }
 
 export class UpdateTaskStatusDto {
-  @ApiProperty({ enum: ['todo', 'in_progress', 'review', 'done'] })
-  @IsEnum(['todo', 'in_progress', 'review', 'done'])
+  @ApiProperty({ enum: ['todo', 'in_progress', 'review', 'done', 'To Do', 'In Progress', 'Blocked', 'Done', 'Cancelled'] })
+  @IsEnum(['todo', 'in_progress', 'review', 'done', 'To Do', 'In Progress', 'Blocked', 'Done', 'Cancelled'])
   @IsNotEmpty()
   status: string;
 }

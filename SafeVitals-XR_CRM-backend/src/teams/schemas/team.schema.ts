@@ -40,4 +40,3 @@ export class Team {
 
 export const TeamSchema = SchemaFactory.createForClass(Team);
 TeamSchema.index({ departmentId: 1, name: 1 }, { unique: true });
-TeamSchema.index({ isArchived: 1 });

@@ -46,8 +46,9 @@ export class TasksService {
       ...dto,
       reporterId: new Types.ObjectId(reporterId),
     };
-    if (dto.assigneeId && Types.ObjectId.isValid(dto.assigneeId)) {
-      payload.assigneeId = new Types.ObjectId(dto.assigneeId);
+    const targetAssignee = dto.assigneeId || dto.assignedTo;
+    if (targetAssignee && Types.ObjectId.isValid(targetAssignee)) {
+      payload.assigneeId = new Types.ObjectId(targetAssignee);
     }
     return this.taskModel.create(payload);
   }
@@ -55,8 +56,9 @@ export class TasksService {
   async update(id: string, dto: UpdateTaskDto) {
     if (!Types.ObjectId.isValid(id)) throw new BadRequestException('Invalid ID');
     const payload: any = { ...dto };
-    if (dto.assigneeId && Types.ObjectId.isValid(dto.assigneeId)) {
-      payload.assigneeId = new Types.ObjectId(dto.assigneeId);
+    const targetAssignee = dto.assigneeId || dto.assignedTo;
+    if (targetAssignee && Types.ObjectId.isValid(targetAssignee)) {
+      payload.assigneeId = new Types.ObjectId(targetAssignee);
     }
     const updated = await this.taskModel
       .findByIdAndUpdate(id, { $set: payload }, { new: true })

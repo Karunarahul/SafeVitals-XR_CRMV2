@@ -14,36 +14,62 @@ async function bootstrap() {
     logger: ['error', 'warn', 'log', 'debug'],
   });
 
+  // Graceful shutdown hooks
+  app.enableShutdownHooks();
+
   const configService = app.get(ConfigService);
-  const port = configService.get<number>('port') || 4000;
-  const host = configService.get<string>('host') || '0.0.0.0';
+  const port = process.env.PORT
+    ? parseInt(process.env.PORT, 10)
+    : configService.get<number>('port') || 4000;
+  const host = process.env.HOST || configService.get<string>('host') || '0.0.0.0';
   const corsOrigins = configService.get<string[]>('cors.origins') || [
     'http://localhost:3000',
   ];
 
-  // HTTP Security with Helmet
+  // HTTP Security Headers with Helmet
   app.use(
     helmet({
       crossOriginResourcePolicy: { policy: 'cross-origin' },
+      hidePoweredBy: true,
+      hsts:
+        process.env.NODE_ENV === 'production'
+          ? { maxAge: 31536000, includeSubDomains: true, preload: true }
+          : false,
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'"],
+          scriptSrc: ["'self'", "'unsafe-inline'"],
+          styleSrc: ["'self'", "'unsafe-inline'"],
+          imgSrc: ["'self'", 'data:', 'blob:', 'https:'],
+          connectSrc: ["'self'"],
+        },
+      },
     }),
   );
 
   // Global API Prefix
   app.setGlobalPrefix('api');
 
-  // CORS setup
+  // Explicit CORS setup
   app.enableCors({
     origin: (origin, callback) => {
       // Allow requests with no origin (e.g. mobile apps, curl, server-to-server)
       if (!origin || corsOrigins.includes(origin) || corsOrigins.includes('*')) {
         callback(null, true);
       } else {
-        callback(new Error(`Origin '${origin}' not allowed by CORS`));
+        callback(new Error(`Origin '${origin}' not permitted by CORS policy`));
       }
     },
     credentials: true,
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'X-Requested-With',
+      'Accept',
+      'X-Correlation-ID',
+    ],
+    exposedHeaders: ['X-Correlation-ID'],
   });
 
   // Global Validation Pipe
@@ -102,6 +128,16 @@ async function bootstrap() {
   logger.log(`API Documentation available at http://${host}:${port}/api/docs`);
   logger.log(`Health check available at http://${host}:${port}/api/health`);
 }
+
+process.on('uncaughtException', (err) => {
+  const logger = new Logger('UncaughtException');
+  logger.error('Fatal uncaught exception:', err.stack || err);
+});
+
+process.on('unhandledRejection', (reason) => {
+  const logger = new Logger('UnhandledRejection');
+  logger.error('Unhandled promise rejection:', reason);
+});
 
 bootstrap().catch((err) => {
   console.error('Fatal bootstrap error:', err);

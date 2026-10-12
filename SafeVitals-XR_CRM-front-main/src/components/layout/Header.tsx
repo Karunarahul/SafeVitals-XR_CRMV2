@@ -21,6 +21,7 @@ import { useAuthStore } from "@/stores/authStore"
 import { useLayoutStore } from "@/stores/layoutStore"
 import { useAppStore } from "@/stores/appStore"
 import { toast } from "sonner"
+import apiClient from "@/lib/apiClient"
 
 export function Header() {
   const { setTheme } = useTheme()
@@ -32,6 +33,25 @@ export function Header() {
   const [isOnline, setIsOnline] = React.useState(true)
   const [notifications, setNotifications] = React.useState<Array<{ id: string; title: string; time: string; unread: boolean }>>([])
   const [mounted, setMounted] = React.useState(false)
+
+  const fetchNotifications = React.useCallback(async () => {
+    try {
+      const res = await apiClient.get('/notifications')
+      const data = Array.isArray(res.data) ? res.data : (Array.isArray(res.data?.data) ? res.data.data : [])
+      setNotifications(
+        data.map((n: any) => ({
+          id: n._id || n.id,
+          title: n.title || n.message || 'Notification',
+          time: n.createdAt
+            ? new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            : 'Recent',
+          unread: !n.read,
+        }))
+      )
+    } catch {
+      // Ignore if unauthenticated or network error
+    }
+  }, [])
 
   React.useEffect(() => {
     setMounted(true)
@@ -48,6 +68,12 @@ export function Header() {
     }
   }, [])
 
+  React.useEffect(() => {
+    if (user?.id) {
+      fetchNotifications()
+    }
+  }, [user?.id, fetchNotifications])
+
   const handleLogout = () => {
     logout()
     useAppStore.getState().resetStore()
@@ -61,9 +87,23 @@ export function Header() {
   const roleName = user?.role || (user?.roleId === "role_1" ? "Super Admin" : user?.roleId === "role_2" ? "Manager" : "Staff Member")
   const unreadCount = notifications.filter(n => n.unread).length
 
-  const markAllRead = () => {
-    setNotifications(notifications.map(n => ({ ...n, unread: false })))
-    toast.success("Notifications marked as read")
+  const markAllRead = async () => {
+    try {
+      await apiClient.post('/notifications/read-all')
+      setNotifications(prev => prev.map(n => ({ ...n, unread: false })))
+      toast.success("Notifications marked as read")
+    } catch {
+      toast.error("Failed to mark notifications as read")
+    }
+  }
+
+  const handleNotificationClick = async (id: string) => {
+    try {
+      await apiClient.post(`/notifications/${id}/read`)
+      setNotifications(prev => prev.map(n => n.id === id ? { ...n, unread: false } : n))
+    } catch {
+      // ignore
+    }
   }
 
   return (

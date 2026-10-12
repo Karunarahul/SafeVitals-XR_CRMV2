@@ -136,15 +136,24 @@ export class LeaveService {
       emp = await this.resolveEmployee(currentUser);
     }
 
+    const rawType = dto.type || dto.leaveType || 'casual';
+    let days = dto.days;
+    if (!days || isNaN(days)) {
+      const start = new Date(dto.startDate).getTime();
+      const end = new Date(dto.endDate).getTime();
+      const diff = Math.max(0, end - start);
+      days = Math.max(1, Math.round(diff / (1000 * 3600 * 24)) + 1);
+    }
+
     return this.leaveModel.create({
       employeeId: emp.employeeId,
       employeeDocId: emp._id,
       userId: emp.userId,
-      type: dto.type.toLowerCase(),
-      leaveType: dto.type,
+      type: rawType.toLowerCase(),
+      leaveType: rawType,
       startDate: dto.startDate,
       endDate: dto.endDate,
-      days: dto.days,
+      days,
       reason: dto.reason || '',
       status: 'pending',
     });

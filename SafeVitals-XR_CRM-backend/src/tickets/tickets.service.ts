@@ -68,8 +68,13 @@ export class TicketsService {
       4,
     );
 
+    const subject = dto.subject || dto.title || 'Support Request';
+    const title = dto.title || subject;
+
     return this.ticketModel.create({
       ...dto,
+      subject,
+      title,
       ticketNumber,
       creatorId: new Types.ObjectId(creatorId),
       status: 'open',

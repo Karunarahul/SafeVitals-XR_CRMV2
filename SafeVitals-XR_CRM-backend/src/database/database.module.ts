@@ -1,4 +1,4 @@
-import { Module, Global } from '@nestjs/common';
+import { Module, Global, Logger } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
@@ -21,9 +21,37 @@ import { OrgSettings, OrgSettingsSchema } from '../org-settings/schemas/org-sett
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: async (configService: ConfigService) => ({
-        uri: configService.get<string>('database.uri'),
-      }),
+      useFactory: async (configService: ConfigService) => {
+        const logger = new Logger('MongoDB');
+        const uri = configService.get<string>('database.uri') || '';
+        const sanitizedUri = uri.replace(/:\/\/([^:]+):([^@]+)@/, '://$1:***@');
+        logger.log(`Connecting to MongoDB cluster: ${sanitizedUri}`);
+
+        return {
+          uri,
+          serverSelectionTimeoutMS: 5000,
+          connectTimeoutMS: 10000,
+          connectionErrorFactory: (error) => {
+            logger.error(`[DATABASE_FATAL] MongoDB connection failed: ${error.message}`);
+            return error;
+          },
+          connectionFactory: (connection) => {
+            connection.on('connected', () => {
+              logger.log('Successfully established connection to MongoDB.');
+            });
+            connection.on('error', (err: any) => {
+              logger.error(`[DATABASE_ERROR] MongoDB error encountered: ${err.message}`);
+            });
+            connection.on('disconnected', () => {
+              logger.warn('MongoDB connection lost. Awaiting automatic reconnection...');
+            });
+            connection.on('reconnected', () => {
+              logger.log('MongoDB connection restored.');
+            });
+            return connection;
+          },
+        };
+      },
     }),
     MongooseModule.forFeature([
       { name: Counter.name, schema: CounterSchema },

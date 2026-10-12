@@ -11,6 +11,10 @@ export class CheckInDto {
   @IsOptional()
   @IsString()
   notes?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  location?: any;
 }
 
 export class CheckOutDto {
@@ -18,6 +22,10 @@ export class CheckOutDto {
   @IsOptional()
   @IsString()
   notes?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  location?: any;
 }
 
 export class ManualAttendanceDto {

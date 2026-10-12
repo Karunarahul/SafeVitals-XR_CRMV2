@@ -39,5 +39,3 @@ export class Department {
 }
 
 export const DepartmentSchema = SchemaFactory.createForClass(Department);
-DepartmentSchema.index({ name: 1 }, { unique: true });
-DepartmentSchema.index({ isArchived: 1 });

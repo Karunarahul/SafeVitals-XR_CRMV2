@@ -17,6 +17,10 @@ export class LoggingInterceptor implements NestInterceptor {
     const ctx = context.switchToHttp();
     const req = ctx.getRequest<Request>();
     const { method, url } = req;
+    const correlationId =
+      (req.headers['x-correlation-id'] as string) ||
+      (req as any).correlationId ||
+      '';
     const now = Date.now();
 
     return next.handle().pipe(
@@ -25,11 +29,31 @@ export class LoggingInterceptor implements NestInterceptor {
           const res = ctx.getResponse();
           const statusCode = res.statusCode;
           const delay = Date.now() - now;
-          this.logger.log(`[${method}] ${url} ${statusCode} - ${delay}ms`);
+          this.logger.log(
+            JSON.stringify({
+              type: 'REQUEST_COMPLETED',
+              correlationId,
+              method,
+              url,
+              statusCode,
+              durationMs: delay,
+              clientIp: req.ip || req.headers['x-forwarded-for'] || '',
+            }),
+          );
         },
         error: (err) => {
           const delay = Date.now() - now;
-          this.logger.warn(`[${method}] ${url} failed after ${delay}ms: ${err.message}`);
+          this.logger.warn(
+            JSON.stringify({
+              type: 'REQUEST_FAILED',
+              correlationId,
+              method,
+              url,
+              statusCode: err.status || 500,
+              durationMs: delay,
+              errorMessage: err.message,
+            }),
+          );
         },
       }),
     );

@@ -105,6 +105,7 @@ export class AuthController {
   }
 
   @Public()
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
   @Post('firebase-login')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Firebase OAuth login and token federation' })
@@ -147,6 +148,7 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Post('change-password')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Change current password' })

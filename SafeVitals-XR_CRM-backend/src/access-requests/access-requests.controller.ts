@@ -38,7 +38,6 @@ export class AccessRequestsController {
   }
 
   @Post()
-  @RequirePermissions('access.request')
   @ApiOperation({ summary: 'Submit an access change request' })
   create(
     @CurrentUser() currentUser: CurrentUserPayload,
@@ -49,7 +48,6 @@ export class AccessRequestsController {
 
   @Patch(':id/review')
   @Roles('Super Admin', 'Manager')
-  @RequirePermissions('access.review')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Review access request (Approve or Reject)' })
   review(

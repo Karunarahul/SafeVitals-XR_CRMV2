@@ -64,30 +64,48 @@ export class SchedulesService {
   }
 
   async create(dto: CreateScheduleDto) {
-    let emp: EmployeeDocument | null = null;
-    if (Types.ObjectId.isValid(dto.employeeId)) {
-      emp = await this.employeeModel.findById(dto.employeeId);
-    }
-    if (!emp) {
-      emp = await this.employeeModel.findOne({ employeeId: dto.employeeId });
-    }
-    if (!emp) throw new NotFoundException('Employee not found');
+    if (dto.employeeId) {
+      let emp: EmployeeDocument | null = null;
+      if (Types.ObjectId.isValid(dto.employeeId)) {
+        emp = await this.employeeModel.findById(dto.employeeId);
+      }
+      if (!emp) {
+        emp = await this.employeeModel.findOne({ employeeId: dto.employeeId });
+      }
+      if (!emp) throw new NotFoundException('Employee not found');
 
-    return this.scheduleModel.findOneAndUpdate(
-      { employeeDocId: emp._id, date: dto.date },
-      {
-        $set: {
-          employeeId: emp.employeeId,
-          employeeDocId: emp._id,
-          date: dto.date,
-          shiftStart: dto.shiftStart || '09:00',
-          shiftEnd: dto.shiftEnd || '17:00',
-          type: dto.type || 'work',
-          notes: dto.notes || '',
+      const dateStr = dto.date || new Date().toISOString().split('T')[0];
+      return this.scheduleModel.findOneAndUpdate(
+        { employeeDocId: emp._id, date: dateStr },
+        {
+          $set: {
+            name: dto.name || 'Standard Shift',
+            employeeId: emp.employeeId,
+            employeeDocId: emp._id,
+            date: dateStr,
+            shiftStart: dto.shiftStart || dto.startTime || '09:00',
+            startTime: dto.startTime || dto.shiftStart || '09:00',
+            shiftEnd: dto.shiftEnd || dto.endTime || '17:00',
+            endTime: dto.endTime || dto.shiftEnd || '17:00',
+            workDays: dto.workDays || ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+            type: dto.type || 'work',
+            notes: dto.notes || '',
+          },
         },
-      },
-      { upsert: true, new: true },
-    );
+        { upsert: true, new: true },
+      );
+    }
+
+    return this.scheduleModel.create({
+      name: dto.name || 'Standard Shift',
+      shiftStart: dto.shiftStart || dto.startTime || '09:00',
+      startTime: dto.startTime || dto.shiftStart || '09:00',
+      shiftEnd: dto.shiftEnd || dto.endTime || '17:00',
+      endTime: dto.endTime || dto.shiftEnd || '17:00',
+      workDays: dto.workDays || ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+      type: dto.type || 'work',
+      notes: dto.notes || '',
+    });
   }
 
   async bulkCreate(dto: BulkCreateScheduleDto) {

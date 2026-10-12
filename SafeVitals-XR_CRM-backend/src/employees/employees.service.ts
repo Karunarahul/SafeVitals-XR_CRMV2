@@ -43,9 +43,12 @@ export class EmployeesService {
     if (query?.status) {
       filter.status = query.status;
     }
-    if (query?.search) {
-      const regex = new RegExp(query.search, 'i');
-      filter.$or = [{ name: regex }, { email: regex }, { employeeId: regex }];
+    if (query?.search && typeof query.search === 'string') {
+      const sanitized = query.search.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      if (sanitized) {
+        const regex = new RegExp(sanitized, 'i');
+        filter.$or = [{ name: regex }, { email: regex }, { employeeId: regex }];
+      }
     }
 
     return this.employeeModel

@@ -2,15 +2,25 @@ import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreatePositionDto {
-  @ApiProperty({ example: 'Senior Software Engineer' })
+  @ApiPropertyOptional({ example: 'Senior Software Engineer' })
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  title: string;
+  title?: string;
+
+  @ApiPropertyOptional({ example: 'Senior Software Engineer' })
+  @IsOptional()
+  @IsString()
+  name?: string;
 
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
   departmentId: string;
+
+  @ApiPropertyOptional({ example: 'Mid-Level' })
+  @IsOptional()
+  @IsString()
+  level?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
@@ -27,7 +37,17 @@ export class UpdatePositionDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
+  name?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
   departmentId?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  level?: string;
 
   @ApiPropertyOptional()
   @IsOptional()

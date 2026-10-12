@@ -95,6 +95,7 @@ export interface AppState {
   workStatus: "in" | "break" | "out" | "completed"
   isLoadingData: boolean
   isApiConnected: boolean
+  dataError: string | null
   
   // Real Data Fetching
   fetchAllData: () => Promise<void>
@@ -114,6 +115,7 @@ export interface AppState {
   archiveDepartment: (id: string) => Promise<boolean>
   deleteDepartment: (id: string) => Promise<boolean>
   addPosition: (position: { name: string; departmentId: string; level: string; description?: string }) => Promise<boolean>
+  updatePosition: (id: string, data: any) => Promise<boolean>
   addTeam: (team: { name: string; departmentId: string; leadId?: string }) => Promise<boolean>
   updateTeam: (id: string, data: any) => Promise<boolean>
   archiveTeam: (id: string) => Promise<boolean>
@@ -176,6 +178,7 @@ export const useAppStore = create<AppState>()((set, get) => ({
   roles: [],
   isLoadingData: false,
   isApiConnected: false,
+  dataError: null,
 
   resetStore: () => set({
     employees: [],
@@ -194,10 +197,11 @@ export const useAppStore = create<AppState>()((set, get) => ({
     roles: [],
     isLoadingData: false,
     isApiConnected: false,
+    dataError: null,
   }),
 
   fetchAllData: async () => {
-    set({ isLoadingData: true })
+    set({ isLoadingData: true, dataError: null })
     try {
       const results = await Promise.allSettled([
         apiClient.get('/employees?limit=100'),
@@ -214,17 +218,30 @@ export const useAppStore = create<AppState>()((set, get) => ({
         apiClient.get('/access-requests?limit=50').catch(() => ({ data: [] })),
       ])
 
-      // Check if primary endpoints failed completely (indicative of server down / connection refused)
-      if (results[0].status === 'rejected' && results[1].status === 'rejected') {
-        const err1 = (results[0] as PromiseRejectedResult).reason
-        
-        // If it's an auth error, let the axios interceptor handle the redirect
-        if (err1?.response?.status === 401) {
-          set({ isLoadingData: false, isApiConnected: true })
-          return
+      // Check for hard server errors (5xx or connection refused) vs expected role-based 403/404
+      const serverErrors: string[] = []
+      results.forEach((r, idx) => {
+        if (r.status === 'rejected') {
+          const err = r.reason
+          const status = err?.response?.status
+          if (status === 401) {
+            // Handled by auth interceptor
+            return
+          }
+          if (status === 403 || status === 404) {
+            // Permitted empty/restricted state for non-admin roles
+            return
+          }
+          serverErrors.push(err?.response?.data?.message || err?.message || `Endpoint ${idx} failed`)
         }
-        
-        throw new Error("Backend connection refused or critical endpoints failed")
+      })
+
+      if (serverErrors.length > 0) {
+        const errorMsg = serverErrors.join('; ')
+        console.error("Critical server failures detected in fetchAllData:", errorMsg)
+        set({ isApiConnected: false, isLoadingData: false, dataError: errorMsg })
+        toast.error(`Server error: ${serverErrors[0]}`)
+        return
       }
 
       const [
@@ -349,10 +366,11 @@ export const useAppStore = create<AppState>()((set, get) => ({
         accessRequests,
         isApiConnected: true,
         isLoadingData: false,
+        dataError: null,
       })
-    } catch (err) {
+    } catch (err: any) {
       console.error("API error during data load:", err)
-      set({ isApiConnected: false, isLoadingData: false })
+      set({ isApiConnected: false, isLoadingData: false, dataError: err?.message || 'Failed to load data from server' })
     }
   },
 
@@ -583,6 +601,19 @@ export const useAppStore = create<AppState>()((set, get) => ({
       return true
     } catch (e: any) {
       const msg = e.response?.data?.message || e.message
+      toast.error(Array.isArray(msg) ? msg.join(', ') : msg)
+      return false
+    }
+  },
+
+  updatePosition: async (id, data) => {
+    try {
+      await apiClient.put(`/positions/${id}`, data)
+      toast.success("Position updated.")
+      await get().fetchAllData()
+      return true
+    } catch (e: any) {
+      const msg = e.response?.data?.message || e.message || 'Failed to update position'
       toast.error(Array.isArray(msg) ? msg.join(', ') : msg)
       return false
     }

@@ -49,38 +49,46 @@ export class AttendanceController {
     return this.attendanceService.findAll(query);
   }
 
-  @Post('check-in')
+  @Post(['check-in', 'check-in/:employeeId'])
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Employee check-in for the day' })
   checkIn(
     @CurrentUser() currentUser: CurrentUserPayload,
     @Body() dto: CheckInDto,
+    @Param('employeeId') employeeId?: string,
   ) {
-    return this.attendanceService.checkIn(currentUser, dto);
+    return this.attendanceService.checkIn(currentUser, dto, employeeId);
   }
 
-  @Post('break-start')
+  @Post(['break-start', 'break-start/:employeeId'])
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Start break period' })
-  startBreak(@CurrentUser() currentUser: CurrentUserPayload) {
-    return this.attendanceService.startBreak(currentUser);
+  startBreak(
+    @CurrentUser() currentUser: CurrentUserPayload,
+    @Param('employeeId') employeeId?: string,
+  ) {
+    return this.attendanceService.startBreak(currentUser, employeeId);
   }
 
-  @Post('break-end')
+  @Post(['break-end', 'break-end/:employeeId'])
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'End break period and calculate duration' })
-  endBreak(@CurrentUser() currentUser: CurrentUserPayload) {
-    return this.attendanceService.endBreak(currentUser);
+  endBreak(
+    @CurrentUser() currentUser: CurrentUserPayload,
+    @Param('employeeId') employeeId?: string,
+  ) {
+    return this.attendanceService.endBreak(currentUser, employeeId);
   }
 
-  @Post('check-out')
+  @Post(['check-out', 'check-out/:employeeId'])
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Employee check-out for the day' })
   checkOut(
     @CurrentUser() currentUser: CurrentUserPayload,
     @Body() dto: CheckOutDto,
+    @Param('employeeId') employeeId?: string,
   ) {
-    return this.attendanceService.checkOut(currentUser, dto);
+    return this.attendanceService.checkOut(currentUser, dto, employeeId);
   }
 
   @Post()

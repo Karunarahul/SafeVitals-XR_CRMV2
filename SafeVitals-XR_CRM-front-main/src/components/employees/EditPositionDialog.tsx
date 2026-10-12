@@ -31,15 +31,22 @@ export function EditPositionDialog({ position, open, onOpenChange }: EditPositio
     }
   }, [position, open])
 
+  const updatePosition = useAppStore(state => state.updatePosition)
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!name.trim() || !position) return
 
     setIsSubmitting(true)
     try {
-      // Mocking update position as it's not in Phase 1 strict requirement but good to have
-      toast.info("Update position API call goes here.")
-      onOpenChange(false)
+      const success = await updatePosition(position.id, {
+        name: name.trim(),
+        level,
+        description: description.trim() || undefined,
+      })
+      if (success) {
+        onOpenChange(false)
+      }
     } finally {
       setIsSubmitting(false)
     }

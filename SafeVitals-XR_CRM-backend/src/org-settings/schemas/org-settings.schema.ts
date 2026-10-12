@@ -55,6 +55,18 @@ export class OrgSettings {
   @Prop({ default: 'YYYY-MM-DD' })
   dateFormat: string;
 
+  @Prop({ default: 'admin@safevitals.com', trim: true })
+  contactEmail?: string;
+
+  @Prop({ default: 'INR', trim: true })
+  currency?: string;
+
+  @Prop({ default: 'SafeVitals HR', trim: true })
+  senderName?: string;
+
+  @Prop({ default: 'hr@safevitals.com', trim: true })
+  replyToEmail?: string;
+
   @Prop({
     type: [String],
     default: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],

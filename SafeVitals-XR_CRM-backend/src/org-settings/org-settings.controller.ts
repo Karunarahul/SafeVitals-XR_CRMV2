@@ -9,7 +9,7 @@ import { Roles } from '../common/decorators/roles.decorator';
 @ApiTags('Organization Settings')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Controller('organization')
+@Controller(['organization', 'org-settings'])
 export class OrgSettingsController {
   constructor(private readonly orgSettingsService: OrgSettingsService) {}
 

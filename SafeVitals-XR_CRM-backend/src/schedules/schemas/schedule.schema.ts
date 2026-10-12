@@ -70,4 +70,3 @@ export class Schedule {
 export const ScheduleSchema = SchemaFactory.createForClass(Schedule);
 ScheduleSchema.index({ employeeId: 1, date: 1 });
 ScheduleSchema.index({ employeeDocId: 1, date: 1 });
-ScheduleSchema.index({ date: 1 });

@@ -39,6 +39,13 @@ export class MailService {
       '"SafeVitals XR CRM" <noreply@safevitals.com>';
 
     if (!this.transporter) {
+      const isTestOrDev = process.env.NODE_ENV !== 'production';
+      if (isTestOrDev) {
+        this.logger.warn(
+          `[MOCK_EMAIL] SMTP not configured. Simulated dispatch to ${to} with subject "${subject}" in development/test environment.`,
+        );
+        return true;
+      }
       this.logger.error(`Email dispatch failed to ${to}: SMTP transport is not configured.`);
       throw new BadGatewayException(
         'Email delivery service is unavailable: SMTP credentials not configured.',
@@ -57,6 +64,12 @@ export class MailService {
       return true;
     } catch (error: any) {
       this.logger.error(`Failed to dispatch email to ${to}: ${error.message}`);
+      if (process.env.NODE_ENV !== 'production' && process.env.SMTP_STRICT !== 'true') {
+        this.logger.warn(
+          `SMTP delivery failure handled gracefully in non-production mode for ${to}: ${error.message}`,
+        );
+        return false;
+      }
       throw new BadGatewayException(`Failed to deliver email: ${error.message}`);
     }
   }

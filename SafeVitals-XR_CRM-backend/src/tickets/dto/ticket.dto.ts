@@ -7,24 +7,35 @@ import {
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateTicketDto {
-  @ApiProperty({ example: 'VPN Access issue on XR headset' })
+  @ApiPropertyOptional({ example: 'VPN Access issue on XR headset' })
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  subject: string;
+  subject?: string;
+
+  @ApiPropertyOptional({ example: 'VPN Access issue on XR headset' })
+  @IsOptional()
+  @IsString()
+  title?: string;
 
   @ApiProperty({ example: 'Cannot authenticate VPN client on Meta Quest 3' })
   @IsString()
   @IsNotEmpty()
   description: string;
 
-  @ApiPropertyOptional({ enum: ['hardware', 'software', 'access', 'hr', 'other'], default: 'software' })
+  @ApiPropertyOptional({
+    enum: ['hardware', 'software', 'access', 'hr', 'other', 'IT Support', 'HR', 'Facilities', 'XR Hardware', 'Other'],
+    default: 'software',
+  })
   @IsOptional()
-  @IsEnum(['hardware', 'software', 'access', 'hr', 'other'])
+  @IsEnum(['hardware', 'software', 'access', 'hr', 'other', 'IT Support', 'HR', 'Facilities', 'XR Hardware', 'Other'])
   category?: string;
 
-  @ApiPropertyOptional({ enum: ['low', 'medium', 'high', 'urgent'], default: 'medium' })
+  @ApiPropertyOptional({
+    enum: ['low', 'medium', 'high', 'urgent', 'Low', 'Medium', 'High', 'Urgent'],
+    default: 'medium',
+  })
   @IsOptional()
-  @IsEnum(['low', 'medium', 'high', 'urgent'])
+  @IsEnum(['low', 'medium', 'high', 'urgent', 'Low', 'Medium', 'High', 'Urgent'])
   priority?: string;
 }
 
@@ -51,11 +62,18 @@ export class UpdateTicketDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
+  title?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
   description?: string;
 
-  @ApiPropertyOptional({ enum: ['hardware', 'software', 'access', 'hr', 'other'] })
+  @ApiPropertyOptional({
+    enum: ['hardware', 'software', 'access', 'hr', 'other', 'IT Support', 'HR', 'Facilities', 'XR Hardware', 'Other'],
+  })
   @IsOptional()
-  @IsEnum(['hardware', 'software', 'access', 'hr', 'other'])
+  @IsEnum(['hardware', 'software', 'access', 'hr', 'other', 'IT Support', 'HR', 'Facilities', 'XR Hardware', 'Other'])
   category?: string;
 
   @ApiPropertyOptional({ enum: ['low', 'medium', 'high', 'urgent'] })

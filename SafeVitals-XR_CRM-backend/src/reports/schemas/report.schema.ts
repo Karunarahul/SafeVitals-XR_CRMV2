@@ -138,4 +138,3 @@ export const ReportSchema = SchemaFactory.createForClass(Report);
 ReportSchema.index({ authorId: 1, weekEnding: 1 });
 ReportSchema.index({ employeeId: 1, weekEnding: 1 });
 ReportSchema.index({ departmentId: 1, weekEnding: 1 });
-ReportSchema.index({ status: 1 });

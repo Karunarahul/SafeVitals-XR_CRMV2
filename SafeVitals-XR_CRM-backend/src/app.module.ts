@@ -1,6 +1,7 @@
-import { Module } from '@nestjs/common';
+import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD, APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
+import { CorrelationIdMiddleware } from './common/middleware/correlation-id.middleware';
 
 import configuration from './config/configuration';
 import { validate } from './config/env.validation';
@@ -93,4 +94,8 @@ import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
     },
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(CorrelationIdMiddleware).forRoutes('*');
+  }
+}

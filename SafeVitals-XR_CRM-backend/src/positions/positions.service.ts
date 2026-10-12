@@ -36,11 +36,13 @@ export class PositionsService {
 
   async create(dto: CreatePositionDto) {
     const deptId = await this.validatorService.validateDepartment(dto.departmentId);
+    const resolvedTitle = dto.title || dto.name || 'Untitled Position';
 
     return this.positionModel.create({
       ...dto,
       departmentId: deptId,
-      name: dto.title,
+      title: resolvedTitle,
+      name: resolvedTitle,
     });
   }
 
@@ -50,8 +52,10 @@ export class PositionsService {
     if (dto.departmentId) {
       payload.departmentId = await this.validatorService.validateDepartment(dto.departmentId);
     }
-    if (dto.title) {
-      payload.name = dto.title;
+    const resolvedTitle = dto.title || dto.name;
+    if (resolvedTitle) {
+      payload.name = resolvedTitle;
+      payload.title = resolvedTitle;
     }
     const updated = await this.positionModel
       .findByIdAndUpdate(id, { $set: payload }, { new: true })

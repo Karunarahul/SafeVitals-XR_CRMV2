@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Patch,
   Param,
   Body,
   Query,
@@ -11,7 +12,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { LeaveService } from './leave.service';
-import { CreateLeaveDto, RejectLeaveDto } from './dto/leave.dto';
+import { CreateLeaveDto, RejectLeaveDto, ReviewLeaveDto } from './dto/leave.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
@@ -79,6 +80,25 @@ export class LeaveController {
     @Body() dto: RejectLeaveDto,
   ) {
     return this.leaveService.reject(id, reviewerId, dto);
+  }
+
+  @Patch(':id/review')
+  @Roles('Super Admin', 'Manager')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Review leave request (Approve or Reject)' })
+  review(
+    @Param('id') id: string,
+    @CurrentUser('userId') reviewerId: string,
+    @Body() dto: ReviewLeaveDto,
+  ) {
+    const status = (dto.status || '').toLowerCase();
+    if (status === 'approved') {
+      return this.leaveService.approve(id, reviewerId);
+    } else {
+      return this.leaveService.reject(id, reviewerId, {
+        reason: dto.note || dto.reviewNotes || 'Rejected by reviewer',
+      });
+    }
   }
 
   @Post(':id/cancel')

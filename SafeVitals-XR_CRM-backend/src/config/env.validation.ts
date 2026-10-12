@@ -98,5 +98,16 @@ export function validate(config: Record<string, unknown>) {
   if (errors.length > 0) {
     throw new Error(`Config validation error: ${errors.toString()}`);
   }
+
+  // Production Security Guards
+  if (validatedConfig.NODE_ENV === Environment.Production) {
+    const jwtSecret = String(config.JWT_SECRET || '');
+    if (!jwtSecret || jwtSecret.includes('safevitals-dev-super-secret-key') || jwtSecret.length < 32) {
+      throw new Error(
+        '[SECURITY] In production, JWT_SECRET must be configured with a unique, high-entropy key of at least 32 characters.',
+      );
+    }
+  }
+
   return validatedConfig;
 }

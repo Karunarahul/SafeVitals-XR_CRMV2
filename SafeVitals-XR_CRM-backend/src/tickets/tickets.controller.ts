@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Put,
+  Patch,
   Delete,
   Param,
   Body,
@@ -68,6 +69,14 @@ export class TicketsController {
   @ApiOperation({ summary: 'Assign ticket to an agent' })
   assign(@Param('id') id: string, @Body() dto: AssignTicketDto) {
     return this.ticketsService.assign(id, dto);
+  }
+
+  @Patch(':id/resolve')
+  @Roles('Super Admin', 'Manager')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Mark ticket as resolved (PATCH)' })
+  resolvePatch(@Param('id') id: string) {
+    return this.ticketsService.resolve(id);
   }
 
   @Post(':id/resolve')

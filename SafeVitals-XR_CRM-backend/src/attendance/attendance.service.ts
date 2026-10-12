@@ -28,25 +28,38 @@ export class AttendanceService {
     return new Date().toISOString().split('T')[0];
   }
 
-  private async resolveEmployee(user: CurrentUserPayload): Promise<EmployeeDocument> {
+  private async resolveEmployee(user: CurrentUserPayload, targetEmployeeId?: string): Promise<EmployeeDocument> {
     let emp: EmployeeDocument | null = null;
-    if (user.employeeDocId && Types.ObjectId.isValid(user.employeeDocId)) {
-      emp = await this.employeeModel.findById(user.employeeDocId);
-    }
-    if (!emp && user.userId && Types.ObjectId.isValid(user.userId)) {
-      emp = await this.employeeModel.findOne({ userId: new Types.ObjectId(user.userId) });
-    }
-    if (!emp && user.employeeId) {
-      emp = await this.employeeModel.findOne({ employeeId: user.employeeId });
+    if (targetEmployeeId) {
+      if (Types.ObjectId.isValid(targetEmployeeId)) {
+        emp = await this.employeeModel.findById(targetEmployeeId);
+      }
+      if (!emp) {
+        emp = await this.employeeModel.findOne({ employeeId: targetEmployeeId });
+      }
+      if (!emp && Types.ObjectId.isValid(targetEmployeeId)) {
+        emp = await this.employeeModel.findOne({ userId: new Types.ObjectId(targetEmployeeId) });
+      }
     }
     if (!emp) {
-      throw new BadRequestException('No employee record linked to the current user');
+      if (user.employeeDocId && Types.ObjectId.isValid(user.employeeDocId)) {
+        emp = await this.employeeModel.findById(user.employeeDocId);
+      }
+      if (!emp && user.userId && Types.ObjectId.isValid(user.userId)) {
+        emp = await this.employeeModel.findOne({ userId: new Types.ObjectId(user.userId) });
+      }
+      if (!emp && user.employeeId) {
+        emp = await this.employeeModel.findOne({ employeeId: user.employeeId });
+      }
+    }
+    if (!emp) {
+      throw new BadRequestException('No employee record linked to the specified or current user');
     }
     return emp;
   }
 
-  async getMyToday(currentUser: CurrentUserPayload) {
-    const emp = await this.resolveEmployee(currentUser);
+  async getMyToday(currentUser: CurrentUserPayload, targetEmployeeId?: string) {
+    const emp = await this.resolveEmployee(currentUser, targetEmployeeId);
     const today = this.getTodayString();
 
     let record = await this.attendanceModel
@@ -61,9 +74,13 @@ export class AttendanceService {
     return record || null;
   }
 
-  async checkIn(currentUser: CurrentUserPayload, dto: CheckInDto) {
-    const emp = await this.resolveEmployee(currentUser);
+  async checkIn(currentUser: CurrentUserPayload, dto: CheckInDto, targetEmployeeId?: string) {
+    const emp = await this.resolveEmployee(currentUser, targetEmployeeId);
     const today = this.getTodayString();
+
+    const locationObj = typeof dto.location === 'string'
+      ? { address: dto.location }
+      : (dto.location && typeof dto.location === 'object' ? dto.location : undefined);
 
     // Prevent duplicate check-in for the same date/shift
     const existing = await this.attendanceModel.findOne({
@@ -84,6 +101,7 @@ export class AttendanceService {
       existing.status = 'present';
       if (dto.workMode) existing.workMode = dto.workMode;
       if (dto.notes) existing.notes = dto.notes;
+      if (locationObj) existing.location = locationObj as any;
       await existing.save();
       return existing;
     }
@@ -98,7 +116,8 @@ export class AttendanceService {
         checkInAt: now,
         status: 'present',
         workMode: dto.workMode || 'office',
-        notes: dto.notes || '',
+        breaks: [],
+        ...(locationObj ? { location: locationObj } : {}),
       });
     } catch (err: any) {
       if (err.code === 11000) {
@@ -108,8 +127,8 @@ export class AttendanceService {
     }
   }
 
-  async startBreak(currentUser: CurrentUserPayload) {
-    const emp = await this.resolveEmployee(currentUser);
+  async startBreak(currentUser: CurrentUserPayload, targetEmployeeId?: string) {
+    const emp = await this.resolveEmployee(currentUser, targetEmployeeId);
     const today = this.getTodayString();
 
     const record = await this.attendanceModel.findOne({
@@ -127,6 +146,10 @@ export class AttendanceService {
       throw new BadRequestException('You have already checked out for today');
     }
 
+    if (!record.breaks) {
+      record.breaks = [];
+    }
+
     const activeBreak = record.breaks.find((b) => !b.end);
     if (activeBreak) {
       throw new BadRequestException('A break session is already in progress');
@@ -142,8 +165,8 @@ export class AttendanceService {
     return record;
   }
 
-  async endBreak(currentUser: CurrentUserPayload) {
-    const emp = await this.resolveEmployee(currentUser);
+  async endBreak(currentUser: CurrentUserPayload, targetEmployeeId?: string) {
+    const emp = await this.resolveEmployee(currentUser, targetEmployeeId);
     const today = this.getTodayString();
 
     const record = await this.attendanceModel.findOne({
@@ -155,6 +178,10 @@ export class AttendanceService {
 
     if (!record) {
       throw new BadRequestException('No attendance record found for today');
+    }
+
+    if (!record.breaks) {
+      record.breaks = [];
     }
 
     const activeBreak = record.breaks.find((b) => !b.end);
@@ -172,8 +199,8 @@ export class AttendanceService {
     return record;
   }
 
-  async checkOut(currentUser: CurrentUserPayload, dto: CheckOutDto) {
-    const emp = await this.resolveEmployee(currentUser);
+  async checkOut(currentUser: CurrentUserPayload, dto: CheckOutDto, targetEmployeeId?: string) {
+    const emp = await this.resolveEmployee(currentUser, targetEmployeeId);
     const today = this.getTodayString();
 
     const record = await this.attendanceModel.findOne({

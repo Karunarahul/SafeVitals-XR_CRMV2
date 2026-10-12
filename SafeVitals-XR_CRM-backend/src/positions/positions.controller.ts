@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Put,
+  Patch,
   Delete,
   Param,
   Body,
@@ -56,6 +57,14 @@ export class PositionsController {
   @ApiOperation({ summary: 'Delete position' })
   delete(@Param('id') id: string) {
     return this.positionsService.delete(id);
+  }
+
+  @Patch(':id/archive')
+  @Roles('Super Admin', 'Manager')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Toggle position archive status (PATCH)' })
+  archivePatch(@Param('id') id: string) {
+    return this.positionsService.archive(id);
   }
 
   @Post(':id/archive')
